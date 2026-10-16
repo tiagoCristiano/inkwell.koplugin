@@ -16,6 +16,7 @@ local ForumClient = require("client")
 local HOME_PAGE_SIZE = 10
 local COMMENTS_PAGE_SIZE = 20
 local COVER_UPLOAD_MAX_H = 400 -- px; plenty for a card thumbnail, keeps the upload ~20-40 KB
+local AVATAR_UPLOAD_MAX = 400 -- px per side; avatars are drawn at ~64px, and the server takes images up to 2 MB
 -- Only BMP symbols: the Kindle's fallback fonts (Noto/FreeSerif) have no color emoji.
 local DONATE_URL = "https://buymeacoffee.com/tcristianoalves"
 local HEART_ON, HEART_OFF = "♥", "♡"
@@ -2252,7 +2253,17 @@ end
 function Inkwell:uploadAvatar(image_path)
     deferredTrap(function()
         Trapper:info(_("Enviando foto…"))
-        local avatar_url, err = ForumClient.uploadAvatar(image_path)
+        -- Shrunk and re-encoded here: a camera photo can be several MB, over the server's limit.
+        local avatar_url, err
+        local bb = require("ui/renderimage"):renderImageFile(image_path, false)
+        local avatar = bb and encodeJpeg(bb, AVATAR_UPLOAD_MAX, AVATAR_UPLOAD_MAX)
+        if not bb then
+            err = _("Não foi possível abrir a imagem")
+        elseif not avatar then
+            err = _("Não foi possível converter a imagem")
+        else
+            avatar_url, err = ForumClient.uploadAvatar(avatar)
+        end
         Trapper:clear()
         if not avatar_url then
             UIManager:show(InfoMessage:new{ text = T(_("Falha ao enviar foto: %1"), err) })

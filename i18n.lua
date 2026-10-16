@@ -261,8 +261,6 @@ local EN = {
     ["Você precisa fazer login primeiro"] = "You need to log in first",
     ["Sessão expirada, faça login novamente"] = "Session expired, please log in again",
     ["Você não tem permissão para isso"] = "You don't have permission to do that",
-    ["Não foi possível abrir o arquivo de imagem"] = "Couldn't open the image file",
-    ["Arquivo de imagem vazio"] = "Empty image file",
     ["Avatar vazio"] = "Empty avatar",
     ["Não foi possível salvar o avatar localmente"] = "Couldn't save the avatar locally",
 

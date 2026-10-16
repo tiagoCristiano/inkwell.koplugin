@@ -1,7 +1,6 @@
 local http = require("socket.http")
 local https = require("ssl.https")
 local ltn12 = require("ltn12")
-local mime = require("mime")
 local socket = require("socket")
 local socketutil = require("socketutil")
 local url = require("socket.url")
@@ -411,33 +410,9 @@ function ForumClient.setCommunityCover(id, cover)
     return fetch("PUT", "/communities/" .. id .. "/cover", "community", cover)
 end
 
-local CONTENT_TYPE_BY_EXT = {
-    jpg = "image/jpeg",
-    jpeg = "image/jpeg",
-    png = "image/png",
-    gif = "image/gif",
-    webp = "image/webp",
-}
-
--- Reads a local image file, base64-encodes it, and sets it as the logged-in user's avatar.
-function ForumClient.uploadAvatar(file_path)
-    local f = io.open(file_path, "rb")
-    if not f then
-        return nil, _("Não foi possível abrir o arquivo de imagem")
-    end
-    local raw = f:read("*a")
-    f:close()
-    if not raw or raw == "" then
-        return nil, _("Arquivo de imagem vazio")
-    end
-
-    local ext = file_path:match("%.([%a0-9]+)$")
-    local content_type = ext and CONTENT_TYPE_BY_EXT[ext:lower()] or "image/jpeg"
-
-    local data, err = ForumClient.call("PUT", "/me/avatar", {
-        data = (mime.b64(raw)),
-        content_type = content_type,
-    })
+-- avatar: { data = base64, content_type }, already shrunk by the caller. Returns the new avatar URL.
+function ForumClient.uploadAvatar(avatar)
+    local data, err = ForumClient.call("PUT", "/me/avatar", avatar)
     if not data then
         return nil, err
     end
